@@ -1,26 +1,62 @@
-import React, { useContext } from "react";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import MovieItem from "./MovieItem";
+import React, { useContext, useEffect } from "react";
+import Movies from "./Movies";
 import DataContext from "../../../store/data-context";
 
-export default (props) => {
+const MovieList = (props) => {
   const dataContext = useContext(DataContext);
-  const fetchingData=dataContext.fetchingData;
-  const movies = dataContext.moviesList;
-  const movieList = movies.map((movie) => {
-    return <MovieItem movie={movie} key={movie._id} />;
-  });
+
+  const fetchData = async () => {
+    try {
+      dataContext.setFetchingData("Fetching data from server....");
+      const obj = {
+        category: "movies",
+        language: "Kannad",
+        genre: "all",
+        sort: "voting",
+      };
+
+      const response = await fetch("https://cors-anywhere.herokuapp.com/https://hoblist.com/api/movieList", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(obj),
+      });
+
+      const result = await response.json();
+
+      if (result.error) {
+        let errorMessage = "Something went wrong!...";
+        if (result.error && result.error.message) {
+          errorMessage = result.error.message;
+        }
+        throw new Error(errorMessage);
+      } else {
+        console.log(result.result[20]);
+        dataContext.setMoviesList(result.result);
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      dataContext.setFetchingData("");
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-    <Container className="mt-5">
-      <center>
-        <h1>Movies List</h1>
-        <h5>
-          <center>
-            <h5 className="fst-italic text-muted">{fetchingData}</h5>
-          </center>
-        </h5>
-        {movieList}
-      </center>
-    </Container>
+    <>
+      {/* Your previous code */}
+      <div>
+        {/* Add any additional components or JSX as needed */}
+      </div>
+
+      {/* Render your component here */}
+      <Movies />
+    </>
   );
 };
+
+export default MovieList;
